@@ -1,152 +1,211 @@
-from pathlib import Path
-import shutil, textwrap, re
-
-base = Path("/mnt/data")
-static_images = base/"static"/"images"
-static_paper = base/"static"/"paper"
-static_videos = base/"static"/"videos"
-static_images.mkdir(parents=True, exist_ok=True)
-static_paper.mkdir(parents=True, exist_ok=True)
-
-# Copy assets
-shutil.copy2("/mnt/data/teaser.png", static_images/"dronevla_teaser.png")
-shutil.copy2("/mnt/data/DroneVLA_2025-3.pdf", static_paper/"dronevla.pdf")
-
-# Compose anonymized BibTeX
-bibtex = """@article{dronevla2025,
-  title   = {DroneVLA: Fine-Tuned $\\pi_0$ for Generalist Aerial Manipulation and Navigation},
-  author  = {Anonymous Authors},
-  year    = {2025},
-  note    = {Manuscript under review}
-}"""
-
-# Webpage copy (anonymized)
-abstract_web = (
-"Vision-Language-Action (VLA) foundation models such as $\\pi_0$ show strong cross-embodiment generalization for "
-"fixed-base manipulation, but transferring them to aerial platforms is challenging due to underactuated, highly dynamic flight. "
-"We introduce <span class=\"dronevla\">DroneVLA</span>, a system study of fine-tuning manipulation-pretrained VLAs for aerial "
-"navigation and pick-and-place.\n"
-"<br><br>\n"
-"We find that while visual representations transfer effectively, flight control dynamics do not. To bridge this “dynamics gap” "
-"without retraining the foundation model, we add <b>Physics-Aware Guidance</b> during flow-matching sampling to inject tracking and payload constraints. "
-"We also use a <b>Gaussian Splatting</b> pipeline to synthesize training data. In real-world experiments, "
-"Physics-Aware Guidance + Real-Time Chunking improve navigation success from <b>30% → 65%</b>, and in synthetic settings reach <b>95%</b> success where direct fine-tuning fails. "
-"However, long-horizon compositional tasks still fail completely (<b>0%</b>), suggesting current VLA architectures struggle with high-level sequencing after domain-specific fine-tuning."
-)
-
-key_points = [
-("<b>Cross-embodiment transfer to aerial robots</b>", "We evaluate how well a manipulation-pretrained VLA transfers to flight navigation and aerial pick-and-place."),
-("<b>Physics-Aware Guidance</b>", "Inference-time guidance that steers the sampler with tracking and payload-aware vertical objectives—no retraining of the base model."),
-("<b>Real-Time Chunking (RTC)</b>", "Synchronizes inference with execution to reduce discontinuities and improve closed-loop performance."),
-("<b>Synthetic data via Gaussian Splatting</b>", "Scene reconstruction + augmentation to expand training coverage and enable robust evaluation.")
-]
-
-results = [
-("<b>Real-world navigation</b>", "Physics-Aware Guidance + RTC increases success from <b>30%</b> to <b>65%</b>."),
-("<b>Synthetic navigation</b>", "Guidance + RTC achieves <b>95%</b> success even when direct fine-tuning fails."),
-("<b>Compositional tasks</b>", "Long-horizon navigation→pick→place sequences achieve <b>0%</b> success after fine-tuning, despite strong atomic skill transfer.")
-]
-
-html = f"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="description" content="DroneVLA: Fine-Tuned π0 for Generalist Aerial Manipulation and Navigation (anonymous project page).">
+  <meta name="description"
+        content="DroneVLA.">
   <meta name="keywords" content="DroneVLA, Vision-Language-Action, VLA, aerial manipulation, navigation, real-time chunking, physics-aware guidance, gaussian splatting">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="google-site-verification" content="Mv03K1PSHa6DfPDktDXDooEr11AZ1jIliliLan_6mQg" />
   <title>DroneVLA</title>
 
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <script>
+
+    function updateInteractive_ASK_Splat() {
+      var task = document.getElementById("interative-menu-ask-splat").value;
+
+      var carousel = document.getElementById("results-carousel-ask-splat")
+
+      // update the relevant elements
+      // 
+      var videos = carousel.querySelectorAll(".ask_splat_rgb");
+      videos.forEach(video => {
+        video.src = "./static/videos/ask_splat/" + task + "/rgb.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".ask_splat_semantics_0");
+      videos.forEach(video => {
+        video.src = "./static/videos/ask_splat/" + task + "/semantics_0.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".ask_splat_semantics_1");
+      videos.forEach(video => {
+        video.src = "./static/videos/ask_splat/" + task + "/semantics_1.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".ask_splat_affordance");
+      videos.forEach(video => {
+        video.src = "./static/videos/ask_splat/" + task + "/affordance.mp4"
+      });
+    }
+
+  </script>
+
+  <script>
+
+    function updateInteractive_SEE_Splat() {
+      var task = document.getElementById("interative-menu-see-splat").value;
+
+      var carousel = document.getElementById("results-carousel-see-splat")
+
+      // update the relevant elements
+      // 
+      var videos = carousel.querySelectorAll(".see_splat_run_0");
+      videos.forEach(video => {
+        video.src = "./static/videos/see_splat/" + task + "/run_0.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".see_splat_run_1");
+      videos.forEach(video => {
+        video.src = "./static/videos/see_splat/" + task + "/run_1.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".see_splat_run_2");
+      videos.forEach(video => {
+        video.src = "./static/videos/see_splat/" + task + "/run_2.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".see_splat_run_3");
+      videos.forEach(video => {
+        video.src = "./static/videos/see_splat/" + task + "/run_3.mp4"
+      });
+    }
+
+  </script>
+
+  <script>
+
+    function updateInteractive_Grasp_Splat() {
+      var task = document.getElementById("interative-menu-grasp-splat").value;
+
+      var carousel = document.getElementById("results-carousel-grasp-splat")
+
+      // update the relevant elements
+      // 
+      var videos = carousel.querySelectorAll(".graspnet_object_1");
+      videos.forEach(video => {
+        video.src = "./static/videos/grasp_splat/" + task + "/object_1/graspnet.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".grasp_splat_object_1");
+      videos.forEach(video => {
+        video.src = "./static/videos/grasp_splat/" + task + "/object_1/grasp_splat.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".graspnet_object_2");
+      videos.forEach(video => {
+        video.src = "./static/videos/grasp_splat/" + task + "/object_2/graspnet.mp4"
+      });
+
+      // 
+      var videos = carousel.querySelectorAll(".grasp_splat_object_2");
+      videos.forEach(video => {
+        video.src = "./static/videos/grasp_splat/" + task + "/object_2/grasp_splat.mp4"
+      });
+
+    }
+
+  </script>
+
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
   <link rel="stylesheet" href="./static/css/bulma.min.css">
   <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
   <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
   <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
   <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script src="./static/js/jquery.min.js"></script>
   <script src="./static/js/bulma-carousel.min.js"></script>
   <script src="./static/js/bulma-slider.min.js"></script>
   <script src="./static/js/index.js"></script>
-
-  <style>
-    .dronevla {{
-      font-weight: 700;
-      letter-spacing: 0.2px;
-    }}
-    .btn-disabled {{
-      opacity: 0.55;
-      pointer-events: none;
-    }}
-  </style>
 </head>
-
 <body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://splatmover.github.io">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="/">
+            Home
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
 
 <section class="hero">
   <div class="hero-body">
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">
-            DroneVLA: Fine-Tuned $\\pi_0$ for Generalist Aerial<br>
-            Manipulation and Navigation
-          </h1>
+                    <h1 class="title is-1 publication-title">DroneVLA: Fine-Tuned &pi;<sub>0</sub> for Generalist Aerial<br> 
+            Manipulation and Navigation</h1>
+          <div class="is-size-5 publication-authors">
+          </div>
 
-          <!-- Anonymized author block -->
           <div class="is-size-5 publication-authors">
             <span class="author-block">Anonymous Authors</span>
           </div>
 
           <div class="column has-text-centered">
             <div class="publication-links">
-
-              <!-- Paper Link -->
+              <!-- PDF Link. -->
               <span class="link-block">
-                <a href="./static/paper/dronevla.pdf"
+                <a href="/static/paper/dronevla.pdf"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
-                    <i class="fas fa-file-pdf"></i>
+                      <i class="fas fa-file-pdf"></i>
                   </span>
                   <span>Paper</span>
                 </a>
               </span>
-
-              <!-- Optional buttons (kept for later; disabled while anonymous / unreleased) -->
-              <span class="link-block">
-                <a href="#"
-                   class="external-link button is-normal is-rounded is-dark btn-disabled">
-                  <span class="icon">
-                    <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
+<span>arXiv</span>
                 </a>
               </span>
-
-              <span class="link-block">
-                <a href="#"
-                   class="external-link button is-normal is-rounded is-dark btn-disabled">
-                  <span class="icon">
-                    <i class="fab fa-github"></i>
-                  </span>
-                  <span>Code</span>
+              <!-- Code Link. -->
+<span>Code</span>
                 </a>
               </span>
-
-              <span class="link-block">
-                <a href="#"
-                   class="external-link button is-normal is-rounded is-dark btn-disabled">
-                  <span class="icon">
-                    <i class="far fa-images"></i>
-                  </span>
-                  <span>Dataset</span>
-                </a>
-              </span>
-
+              <!-- Dataset Link. -->
+<span>Data</span>
+                  </a>
+            </span>
             </div>
-          </div>
 
         </div>
       </div>
@@ -154,13 +213,12 @@ html = f"""<!DOCTYPE html>
   </div>
 </section>
 
-
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
       <img src="./static/images/dronevla_teaser.png" alt="DroneVLA teaser" style="width:100%; height:auto; border-radius: 12px;">
       <p class="has-text-justified" style="margin-top: 1rem;">
-        <span class="dronevla">DroneVLA</span> studies how a manipulation-pretrained VLA transfers to aerial navigation and pick-and-place.
+        <span class="splat_mover">DroneVLA</span> studies how a manipulation-pretrained VLA transfers to aerial navigation and pick-and-place.
         We combine fine-tuning with inference-time <b>Physics-Aware Guidance</b> and <b>Real-Time Chunking</b> to address flight dynamics,
         and use <b>Gaussian Splatting</b> to synthesize training data.
       </p>
@@ -168,101 +226,72 @@ html = f"""<!DOCTYPE html>
   </div>
 </section>
 
-
 <section class="section">
   <div class="container is-max-desktop">
-
-    <!-- Abstract -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
-          <p>{abstract_web}</p>
-        </div>
-      </div>
-    </div>
-    <!-- /Abstract -->
-
-    <hr>
-
-    <!-- Key ideas -->
-    <div class="columns is-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3 has-text-centered">Key Ideas</h2>
-        <div class="content">
-          <ul>
-            {''.join([f'<li><span>{t}</span>: {d}</li>' for t,d in key_points])}
-          </ul>
+          <p>
+            Vision-Language-Action (VLA) foundation models such as &pi;<sub>0</sub> show strong cross-embodiment generalization for fixed-base manipulation, but transferring them to aerial platforms is challenging due to underactuated, highly dynamic flight. We introduce <span class="splat_mover">DroneVLA</span>, a system study of fine-tuning manipulation-pretrained VLAs for aerial navigation and pick-and-place. We find that while visual representations transfer effectively, flight control dynamics do not. To bridge this “dynamics gap” without retraining the foundation model, we add <b>Physics-Aware Guidance</b> during flow-matching sampling to inject tracking and payload constraints. We also use a <b>Gaussian Splatting</b> pipeline to synthesize training data. In real-world experiments, Physics-Aware Guidance + Real-Time Chunking improve navigation success from <b>30% → 65%</b>, and in synthetic settings reach <b>95%</b> success where direct fine-tuning fails. However, long-horizon compositional tasks still fail completely (<b>0%</b>), suggesting current VLA architectures struggle with high-level sequencing after domain-specific fine-tuning.
+          </p>
         </div>
       </div>
     </div>
 
     <hr>
 
-    <!-- Method -->
     <div class="columns is-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3 has-text-centered">Method Overview</h2>
         <div class="content has-text-justified">
-          <p>
-            We start from a flow-matching VLA policy backbone ($\\pi_0$) and fine-tune it on aerial navigation and pick-and-place.
-            At inference time, we modify sampling with two complementary mechanisms:
-          </p>
-          <ol>
-            <li>
-              <b>Real-Time Chunking (RTC)</b> to synchronize inference with execution, blending previously committed actions with newly generated ones to reduce discontinuities.
-            </li>
-            <li>
-              <b>Physics-Aware Guidance</b> to inject task- and platform-specific constraints directly into the sampler.
-              We use tracking-error objectives for smooth control, and a payload-aware vertical guidance term that biases altitude to compensate for load-induced sag.
-            </li>
-          </ol>
-          <p>
-            To expand data coverage and stress-test generalization, we build a <b>Gaussian Splatting</b>-based pipeline for synthesizing training environments and demonstrations.
-          </p>
+          <ul>
+            <li><b>Fine-tuning</b> a flow-matching VLA policy on aerial navigation and pick-and-place.</li>
+            <li><b>Real-Time Chunking (RTC)</b> to synchronize inference with execution and reduce action discontinuities.</li>
+            <li><b>Physics-Aware Guidance</b> to steer sampling with tracking-error objectives and payload-aware vertical support.</li>
+            <li><b>Gaussian Splatting</b> to synthesize training environments and demonstrations for broader coverage.</li>
+          </ul>
         </div>
       </div>
     </div>
 
     <hr>
 
-    <!-- Results -->
     <div class="columns is-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3 has-text-centered">Results Highlights</h2>
-        <div class="content">
+        <div class="content has-text-justified">
           <ul>
-            {''.join([f'<li>{t} {d}</li>' for t,d in results])}
+            <li><b>Real-world navigation:</b> Physics-Aware Guidance + RTC improves success from <b>30% → 65%</b>.</li>
+            <li><b>Synthetic navigation:</b> Guidance + RTC reaches <b>95%</b> success where direct fine-tuning fails.</li>
+            <li><b>Compositional tasks:</b> Long-horizon navigate→pick→place remains at <b>0%</b> success after fine-tuning.</li>
           </ul>
-          <p class="has-text-justified">
-            These results emphasize that <b>inference-time interventions</b> can set a critical performance floor for aerial VLAs.
-            At the same time, the observed compositional failure suggests that maintaining high-level sequencing remains a key challenge
-            when adapting generalist VLAs to domain-specific control regimes.
-          </p>
         </div>
       </div>
     </div>
-
   </div>
 </section>
-
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
-    <pre><code>{bibtex}
-</code></pre>
+    <pre><code>@article{dronevla2025,
+  title   = {DroneVLA: Fine-Tuned {\pi_0} for Generalist Aerial Manipulation and Navigation},
+  author  = {Anonymous Authors},
+  year    = {2025},
+  note    = {Manuscript under review}
+}</code></pre>
   </div>
 </section>
-
 
 <footer class="footer">
   <div class="container">
     <div class="content has-text-centered">
-      <a class="icon-link" href="./static/paper/dronevla.pdf">
+      <a class="icon-link"
+         href="/">
         <i class="fas fa-file-pdf"></i>
       </a>
-      <a class="icon-link btn-disabled" href="#">
+      <a class="icon-link" href="/" class="external-link" disabled>
         <i class="fab fa-github"></i>
       </a>
     </div>
@@ -270,13 +299,13 @@ html = f"""<!DOCTYPE html>
       <div class="column is-8">
         <div class="content">
           <p>
-            Website template adapted from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+            We thank <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> 
+            and <a href="https://github.com/peract/peract.github.io">PerAct</a> for the website template.
           </p>
           <p>
-            This website is licensed under a
-            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
-              Creative Commons Attribution-ShareAlike 4.0 International License
-            </a>.
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
           </p>
         </div>
       </div>
@@ -286,10 +315,3 @@ html = f"""<!DOCTYPE html>
 
 </body>
 </html>
-"""
-
-out_html = base/"index_updated.html"
-out_html.write_text(html, encoding="utf-8")
-
-(out_html, static_images/"dronevla_teaser.png", static_paper/"dronevla.pdf")
-
